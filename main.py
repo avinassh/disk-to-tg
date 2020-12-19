@@ -53,7 +53,7 @@ def upload_to_telegraph(username, album_path: Path) -> (str, List[str]):
     # they could be jpeg, gif, png or mp4
     children = [p for p in album_path.iterdir() if p.is_file()]
     if not children:
-        return ""
+        return None, None
     media_urls: List[str] = telegraph.upload.upload_file(children)
     content = get_html_content_for_telegraph(media_urls)
     post_title = F"{album_path.name} by {username}"
@@ -91,7 +91,10 @@ def process_album(username: str, album: Path):
         # there were no files in this directory to be uploaded, so just return
         return
     # once we have post_url, we can now post to TG
-    post_to_tg(username=username, album_name=album_name, media_urls=media_urls)
+    # telegraph urls dont have host, so we add them manually here. They are usually like
+    # `/file/someId`, so we just append `https://telegra.ph`
+    post_to_tg(username=username, album_name=album_name,
+               media_urls=[F"https://telegra.ph{u}" for u in media_urls])
     # once all images have been posted, we can post the telegraph url
     post_telegraph_url_to_tg(username=username, telegraph_url=post_url)
 
