@@ -51,7 +51,7 @@ def post_to_tg(username, album_name, media_urls: List[str]):
 def upload_to_telegraph(username, album_path: Path) -> (str, List[str]):
     # children will be the path to the files within this album directory
     # they could be jpeg, gif, png or mp4
-    children = [p for p in album_path.iterdir() if p.is_file()]
+    children = [p.absolute().as_posix() for p in album_path.iterdir() if p.is_file()]
     if not children:
         return None, None
     media_urls: List[str] = telegraph.upload.upload_file(children)
