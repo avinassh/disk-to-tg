@@ -76,7 +76,6 @@ def get_html_content_for_telegraph(media_urls: List[str]):
 
 
 def clean_up(path: Path):
-    return
     if path.is_dir():
         shutil.rmtree(path)
     else:
