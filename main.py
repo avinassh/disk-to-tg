@@ -12,7 +12,7 @@ from settings import TELEGRAPH_ACCESS_TOKEN, TELEGRAM_ACCESS_TOKEN, TELEGRAM_GRO
 
 bot = telegram.Bot(token=TELEGRAM_ACCESS_TOKEN)
 telegraph_client = telegraph.Telegraph(access_token=TELEGRAPH_ACCESS_TOKEN)
-tg_sleep_sec = 25
+tg_sleep_sec = 10
 
 
 def post_image_to_tg(image_url, caption=''):
@@ -96,6 +96,7 @@ def process_album(username: str, album: Path):
                media_urls=[F"https://telegra.ph{u}" for u in media_urls])
     # once all images have been posted, we can post the telegraph url
     post_telegraph_url_to_tg(username=username, telegraph_url=post_url)
+    time.sleep(tg_sleep_sec)
 
 
 def process_user(path: Path):
