@@ -12,7 +12,7 @@ from settings import TELEGRAPH_ACCESS_TOKEN, TELEGRAM_ACCESS_TOKEN, TELEGRAM_GRO
 
 bot = telegram.Bot(token=TELEGRAM_ACCESS_TOKEN)
 telegraph_client = telegraph.Telegraph(access_token=TELEGRAPH_ACCESS_TOKEN)
-tg_sleep_sec = 10
+tg_sleep_sec = 60
 
 
 def post_image_to_tg(image_url, caption=''):
