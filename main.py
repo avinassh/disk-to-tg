@@ -29,6 +29,22 @@ def post_video_to_tg(video_url, caption=''):
     time.sleep(tg_sleep_sec)
 
 
+def post_image_file_to_tg(image: Path, caption=''):
+    # telegram restricts max characters of `caption` to be 200
+    with open(image, 'rb') as f:
+        bot.send_photo(chat_id=TELEGRAM_GROUP_ID, photo=f,
+                       caption=caption[:200])
+    time.sleep(tg_sleep_sec)
+
+
+def post_video_file_to_tg(video: Path, caption=''):
+    # telegram restricts max characters of `caption` to be 200
+    with open(video, 'rb') as f:
+        bot.send_video(chat_id=TELEGRAM_GROUP_ID, video=f,
+                       caption=caption[:200])
+    time.sleep(tg_sleep_sec)
+
+
 def post_telegraph_url_to_tg(username: str, telegraph_url):
     text = F"\nTelegraph URL #{username} \n({username}): {telegraph_url}\n"  # noqa
     bot.send_message(
@@ -45,6 +61,17 @@ def post_to_tg(username, album_name, media_urls: List[str]):
             post_image_to_tg(image_url=_url, caption=caption)
         else:
             post_video_to_tg(video_url=_url, caption=caption)
+
+
+# given a list of Path obj lists (aka files present locally), this method posts
+# them to the TG group
+def post_files_to_tg(username, album_name, local_files: List[Path]):
+    caption = F"#{username} {username}: {album_name}"
+    for f in local_files:
+        if f.name.endswith(('.png', '.gif', '.jpg', '.jpeg')):
+            post_image_file_to_tg(image=f, caption=caption)
+        else:
+            post_video_file_to_tg(video=f, caption=caption)
 
 
 # uploads all the contents of a album to telegraph and returns the post URL
@@ -82,7 +109,7 @@ def clean_up(path: Path):
         path.unlink()
 
 
-def process_album(username: str, album: Path):
+def process_album_with_telegraph(username: str, album: Path):
     album_name = album.name
     # we need to upload all the images, videos to telegraph
     post_url, media_urls = upload_to_telegraph(username, album_path=album)
@@ -96,6 +123,25 @@ def process_album(username: str, album: Path):
                media_urls=[F"https://telegra.ph{u}" for u in media_urls])
     # once all images have been posted, we can post the telegraph url
     post_telegraph_url_to_tg(username=username, telegraph_url=post_url)
+
+
+# same like process_album_with_telegraph, but this method doesn't try uploading
+# to Telegraph
+def process_album_without_telegraph(username: str, album: Path):
+    children = [p for p in album.iterdir() if p.is_file()]
+    if not children:
+        return None, None
+    post_files_to_tg(username=username, album_name=album.name,
+                     local_files=children)
+
+
+def process_album(username: str, album: Path):
+    # following method give us an error, usually when telegraph blocks us.
+    # in that case, we will simply upload the artifacts to TG
+    try:
+        process_album_with_telegraph(username, album)
+    except:  # noqa
+        process_album_without_telegraph(username, album)
     time.sleep(tg_sleep_sec)
 
 
@@ -114,6 +160,7 @@ def run(root: str):
             process_user(child)
             # the user has been processed. then it can be deleted
             clean_up(child)
+            print(F"processed {child.name}")
 
 
 if __name__ == '__main__':
