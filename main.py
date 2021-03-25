@@ -1,7 +1,7 @@
 import os
 import shutil
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import List
 import time
 
@@ -74,8 +74,10 @@ def post_files_to_tg(username, album_name, local_files: List[Path]):
             else:
                 post_video_file_to_tg(video=f, caption=caption)
         except telegram.error.NetworkError:
-            shutil.move(f.name, "/home/avi/data_error/")
-            import sys; sys.exit()
+            p = PurePath('/home/avi/data_error', f.parent.parent.name, f.parent.name)
+            if not os.path.exists(p):
+                os.makedirs(p)
+            shutil.move(f, p)
 
 
 # uploads all the contents of a album to telegraph and returns the post URL
