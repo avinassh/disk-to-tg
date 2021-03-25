@@ -68,10 +68,14 @@ def post_to_tg(username, album_name, media_urls: List[str]):
 def post_files_to_tg(username, album_name, local_files: List[Path]):
     caption = F"#{username} {username}: {album_name}"
     for f in local_files:
-        if f.name.endswith(('.png', '.gif', '.jpg', '.jpeg')):
-            post_image_file_to_tg(image=f, caption=caption)
-        else:
-            post_video_file_to_tg(video=f, caption=caption)
+        try:
+            if f.name.endswith(('.png', '.gif', '.jpg', '.jpeg')):
+                post_image_file_to_tg(image=f, caption=caption)
+            else:
+                post_video_file_to_tg(video=f, caption=caption)
+        except telegram.error.NetworkError:
+            shutil.move(f.name, "/home/avi/data_error/")
+            import sys; sys.exit()
 
 
 # uploads all the contents of a album to telegraph and returns the post URL
